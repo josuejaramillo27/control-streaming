@@ -1,0 +1,6 @@
+body{font-family:Arial;background:#f4f4f4;padding:20px}
+.card{background:#fff;padding:20px;max-width:300px;margin:auto;border-radius:8px}
+.hidden{display:none}
+input,button{display:block;width:100%;margin:6px 0;padding:8px}
+table{width:100%;background:#fff;margin-top:10px;border-collapse:collapse}
+th,td{border:1px solid #ddd;padding:6px;text-align:center}

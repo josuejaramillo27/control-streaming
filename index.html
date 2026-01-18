@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Control de Streaming</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <div id="loginDiv" class="card">
+    <h2>Ingreso</h2>
+    <input id="user" placeholder="Usuario"/>
+    <input id="pass" type="password" placeholder="Contraseña"/>
+    <button onclick="login()">Entrar</button>
+    <p id="loginError"></p>
+  </div>
+
+  <div id="app" class="hidden">
+    <h1>Control de Streaming</h1>
+    <button onclick="logout()">Cerrar sesión</button>
+
+    <h2>Agregar cliente / servicio</h2>
+    <input id="cNombre" placeholder="Cliente"/>
+    <input id="cNumero" placeholder="Número"/>
+    <input id="cServicio" placeholder="Servicio"/>
+    <input id="cVence" type="date"/>
+    <input id="cPago" type="number" placeholder="Pago cliente"/>
+    <input id="cCosto" type="number" placeholder="Costo"/>
+    <button onclick="add()">Agregar</button>
+
+    <h2>Clientes</h2>
+    <input id="filter" placeholder="Filtrar por nombre, número o servicio" oninput="render()"/>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Cliente</th><th>Número</th><th>Servicio</th>
+          <th>Vence</th><th>Pago</th><th>Costo</th><th>Ganancia</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+
+<script src="app.js"></script>
+</body>
+</html>
