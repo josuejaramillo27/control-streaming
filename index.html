@@ -61,6 +61,7 @@
         <button class="btn" onclick="openServices()">Servicios</button>
         <button class="btn" onclick="openSettings()">Ajustes</button>
         <button class="btn" onclick="exportBackup()">Exportar</button>
+        <button class="btn" onclick="setupAutoJson()">Auto‑JSON</button>
         <label class="btn file">
           Importar
           <input type="file" accept="application/json" onchange="importBackup(event)"/>
@@ -158,6 +159,19 @@
       </div>
 
       <div class="formGrid">
+        <div class="card subtle span2">
+          <div class="kpiTitle">Auto‑JSON (guardar en archivo)</div>
+          <div class="muted small" style="margin-top:6px">
+            Si usas <b>Chrome/Edge</b>, puedes elegir un archivo .json en tu PC y la web guardará automáticamente ahí cada cambio.
+            (Te pedirá permiso 1 vez).
+          </div>
+          <div class="row gap" style="margin-top:10px">
+            <button class="btn" onclick="setupAutoJson()">Elegir archivo</button>
+            <button class="btn danger" onclick="disableAutoJson()">Desactivar</button>
+          </div>
+          <div id="autoJsonStatus" class="muted small" style="margin-top:8px"></div>
+        </div>
+
         <label class="field">
           <span>Nombre</span>
           <input id="cNombre" class="input" placeholder="Ej: Juan Pérez"/>
@@ -240,6 +254,19 @@
       </div>
 
       <div class="formGrid">
+        <div class="card subtle span2">
+          <div class="kpiTitle">Auto‑JSON (guardar en archivo)</div>
+          <div class="muted small" style="margin-top:6px">
+            Si usas <b>Chrome/Edge</b>, puedes elegir un archivo .json en tu PC y la web guardará automáticamente ahí cada cambio.
+            (Te pedirá permiso 1 vez).
+          </div>
+          <div class="row gap" style="margin-top:10px">
+            <button class="btn" onclick="setupAutoJson()">Elegir archivo</button>
+            <button class="btn danger" onclick="disableAutoJson()">Desactivar</button>
+          </div>
+          <div id="autoJsonStatus" class="muted small" style="margin-top:8px"></div>
+        </div>
+
         <label class="field">
           <span>Usuario</span>
           <input id="setUser" class="input" placeholder="admin"/>

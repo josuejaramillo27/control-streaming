@@ -32,6 +32,8 @@ function loadState(){
 
 function saveState(){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  // Auto-JSON (si está activo)
+  writeAutoJson();
 }
 
 function money(n){
@@ -406,3 +408,69 @@ function modalBackdropClose(event, id){
     document.getElementById(id).classList.add("hidden");
   }
 }
+
+
+/* ---------- AUTO-JSON (File System Access API) ----------
+   Funciona en Chrome/Edge. En Firefox/Safari puede no existir.
+   Guarda automáticamente el state en el archivo elegido.
+*/
+const AUTO_JSON_HANDLE_KEY = "streamingControl_autoJsonHandle";
+
+async function setupAutoJson(){
+  if(!window.showSaveFilePicker){
+    alert("Tu navegador no soporta Auto‑JSON.\nUsa Chrome o Edge.\n\nAlternativa: Exportar/Importar.");
+    return;
+  }
+  try{
+    const handle = await window.showSaveFilePicker({
+      suggestedName: "control-streaming.json",
+      types: [{ description: "JSON", accept: { "application/json": [".json"] } }]
+    });
+    await saveHandleToStorage(handle);
+    await writeAutoJson(); // primera escritura
+    updateAutoJsonStatus();
+    alert("Listo ✅ Ahora se guardará automáticamente en ese archivo.");
+  }catch(e){
+    // cancelado
+  }
+}
+
+async function disableAutoJson(){
+  localStorage.removeItem(AUTO_JSON_HANDLE_KEY);
+  autoJsonHandle = null;
+  updateAutoJsonStatus();
+  alert("Auto‑JSON desactivado.");
+}
+
+let autoJsonHandle = null;
+
+async function saveHandleToStorage(handle){
+  // Mantiene el handle en memoria (esta sesión). Si recargas, vuelve a elegir archivo.
+  localStorage.setItem(AUTO_JSON_HANDLE_KEY, "enabled");
+  autoJsonHandle = handle;
+}
+
+function updateAutoJsonStatus(){
+  const el = document.getElementById("autoJsonStatus");
+  if(!el) return;
+  const enabled = localStorage.getItem(AUTO_JSON_HANDLE_KEY)==="enabled";
+  el.textContent = enabled
+    ? (autoJsonHandle ? "Activo ✅ (archivo seleccionado en esta sesión)" : "Activo ⚠️ (recargaste: vuelve a elegir archivo)")
+    : "Inactivo";
+}
+
+async function writeAutoJson(){
+  const enabled = localStorage.getItem(AUTO_JSON_HANDLE_KEY)==="enabled";
+  if(!enabled || !autoJsonHandle) return;
+
+  try{
+    const writable = await autoJsonHandle.createWritable();
+    await writable.write(JSON.stringify(state, null, 2));
+    await writable.close();
+  }catch(e){
+    console.warn("Auto-JSON fallo:", e);
+    const el = document.getElementById("autoJsonStatus");
+    if(el) el.textContent = "Activo ⚠️ (no se pudo escribir; vuelve a elegir archivo)";
+  }
+}
+
