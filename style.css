@@ -232,3 +232,8 @@ tbody tr:hover{background: rgba(255,255,255,.05)}
 }
 .error{color: #fecaca; margin-top:10px; font-weight:700}
 .hint{margin-top:10px}
+
+
+.btn.sm{padding:8px 10px; border-radius:12px; font-size:12px}
+.btn.ghost{background: rgba(255,255,255,.06)}
+.actions{display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap}

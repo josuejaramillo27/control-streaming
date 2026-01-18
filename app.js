@@ -44,15 +44,19 @@ function money(n){
 
 function daysLeft(dateStr){
   if(!dateStr) return null;
-  const d = new Date(dateStr + "T00:00:00");
+
+  const d = new Date(String(dateStr).trim() + "T00:00:00");
+  if(Number.isNaN(d.getTime())) return null;
+
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const diffMs = d - today;
-  return Math.round(diffMs / (1000*60*60*24));
+  const days = Math.round(diffMs / (1000*60*60*24));
+  return Number.isFinite(days) ? days : null;
 }
 
 function badgeForDays(d){
-  if(d === null) return {cls:"", text:"—"};
+  if(d === null || Number.isNaN(d)) return {cls:"", text:"—"};
   if(d <= 0) return {cls:"danger", text: d === 0 ? "Hoy" : (Math.abs(d) + "d atrasado")};
   if(d <= 3) return {cls:"danger", text: d + "d"};
   if(d <= 7) return {cls:"warn", text: d + "d"};
@@ -235,7 +239,11 @@ function render(){
       <td>${money(c.pago)}</td>
       <td>${money(c.costo)}</td>
       <td><b>${money((Number(c.pago||0) - Number(c.costo||0)))}</b></td>
-      <td><button class="btn" onclick="openClientModal('${c.id}')">Editar</button></td>
+      <td><div class="actions">
+  <button class="btn sm ghost" onclick="openWhatsApp('reminder','${c.id}')">WSP Faltan</button>
+  <button class="btn sm ghost" onclick="openWhatsApp('renew','${c.id}')">WSP Renovar</button>
+  <button class="btn sm" onclick="openClientModal('${c.id}')">Editar</button>
+</div></td>
     `;
     tbody.appendChild(tr);
   }
@@ -474,3 +482,53 @@ async function writeAutoJson(){
   }
 }
 
+
+/* ---------- WHATSAPP (manual) ----------
+   Abre WhatsApp con mensaje listo. No envía solo (tú presionas enviar).
+*/
+function normalizePhoneForWa(raw){
+  const s = String(raw||"").trim();
+  if(!s) return null;
+  const digits = s.replace(/\D/g, "");
+  return digits.length >= 8 ? digits : null;
+}
+
+function buildServicesText(servicios){
+  const arr = Array.isArray(servicios) ? servicios : [];
+  if(arr.length === 0) return "servicio";
+  if(arr.length === 1) return arr[0];
+  return arr.join(", ");
+}
+
+function msgReminder(c, d){
+  const svc = buildServicesText(c.servicios);
+  const diasTxt = (d === 1) ? "1 día" : (d + " días");
+  return `Hola ${c.nombre}, te quedan ${diasTxt} para que venza tu ${svc}. ¿Deseas renovar?`;
+}
+
+function msgRenew(c, d){
+  const svc = buildServicesText(c.servicios);
+  if(d === 0) return `Hola ${c.nombre}, hoy vence tu ${svc}. ¿Renovamos?`;
+  if(d < 0){
+    const atras = Math.abs(d);
+    const atrasTxt = (atras === 1) ? "1 día" : (atras + " días");
+    return `Hola ${c.nombre}, tu ${svc} ya venció hace ${atrasTxt}. ¿Deseas renovar?`;
+  }
+  return `Hola ${c.nombre}, ¿confirmas la renovación de tu ${svc}?`;
+}
+
+function openWhatsApp(type, id){
+  const c = state.clients.find(x=>x.id===id);
+  if(!c) return;
+
+  const phone = normalizePhoneForWa(c.numero);
+  if(!phone){
+    alert("Este cliente no tiene número válido.\nUsa formato con código de país, ej: +51 999 999 999");
+    return;
+  }
+
+  const d = daysLeft(c.vence);
+  const text = (type === "renew") ? msgRenew(c, d ?? 0) : msgReminder(c, (d ?? 0));
+  const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+  window.open(url, "_blank");
+}
