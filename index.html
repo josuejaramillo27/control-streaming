@@ -7,41 +7,261 @@
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <div id="loginDiv" class="card">
-    <h2>Ingreso</h2>
-    <input id="user" placeholder="Usuario"/>
-    <input id="pass" type="password" placeholder="Contraseña"/>
-    <button onclick="login()">Entrar</button>
-    <p id="loginError"></p>
+  <div class="bg"></div>
+
+  <!-- LOGIN -->
+  <section id="loginView" class="center">
+    <div class="card glass w-sm">
+      <div class="brand">
+        <div class="logo">A</div>
+        <div>
+          <div class="brandTitle">AKAZA Control</div>
+          <div class="brandSub">Streaming • Ventas • Renovaciones</div>
+        </div>
+      </div>
+
+      <h2>Ingresar</h2>
+      <p class="muted">Solo tú. Todo queda guardado en este navegador.</p>
+
+      <label class="field">
+        <span>Usuario</span>
+        <input id="user" autocomplete="username" placeholder="admin"/>
+      </label>
+
+      <label class="field">
+        <span>Contraseña</span>
+        <input id="pass" type="password" autocomplete="current-password" placeholder="1234"/>
+      </label>
+
+      <button class="btn primary" onclick="login()">Entrar</button>
+      <div id="loginError" class="error"></div>
+
+      <details class="hint">
+        <summary>Tip rápido</summary>
+        <div class="muted small">
+          Usuario: <b>admin</b> — Contraseña: <b>1234</b><br/>
+          Luego lo puedes cambiar dentro de la web (Ajustes).
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- APP -->
+  <section id="appView" class="hidden">
+    <header class="topbar">
+      <div class="brand mini">
+        <div class="logo small">A</div>
+        <div>
+          <div class="brandTitle">AKAZA Control</div>
+          <div class="brandSub">Control de clientes y renovaciones</div>
+        </div>
+      </div>
+
+      <div class="topActions">
+        <button class="btn" onclick="openServices()">Servicios</button>
+        <button class="btn" onclick="openSettings()">Ajustes</button>
+        <button class="btn" onclick="exportBackup()">Exportar</button>
+        <label class="btn file">
+          Importar
+          <input type="file" accept="application/json" onchange="importBackup(event)"/>
+        </label>
+        <button class="btn danger" onclick="logout()">Salir</button>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="grid">
+        <div class="card">
+          <div class="kpiTitle">Ingresos (total)</div>
+          <div id="kpiIngresos" class="kpiValue">S/ 0</div>
+          <div class="muted small">Suma de “Pago cliente”.</div>
+        </div>
+        <div class="card">
+          <div class="kpiTitle">Inversión (total)</div>
+          <div id="kpiCostos" class="kpiValue">S/ 0</div>
+          <div class="muted small">Suma de “Costo”.</div>
+        </div>
+        <div class="card">
+          <div class="kpiTitle">Ganancia neta (total)</div>
+          <div id="kpiGanancia" class="kpiValue">S/ 0</div>
+          <div class="muted small">Pago - Costo.</div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="sectionHead">
+          <div>
+            <h2>Clientes</h2>
+            <p class="muted">Ordenado automáticamente: vence primero → vence después.</p>
+          </div>
+          <div class="row gap">
+            <input id="filter" class="input" placeholder="Buscar: nombre, número o servicio…" oninput="render()"/>
+            <button class="btn primary" onclick="openClientModal()">+ Nuevo</button>
+          </div>
+        </div>
+
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Número</th>
+                <th>Servicios</th>
+                <th>Vence</th>
+                <th>Faltan</th>
+                <th>Pago</th>
+                <th>Costo</th>
+                <th>Neto</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="sectionHead">
+          <div>
+            <h2>Resumen por mes</h2>
+            <p class="muted">Se calcula según la <b>fecha de vencimiento</b> (renovaciones).</p>
+          </div>
+          <div class="row gap">
+            <input id="monthPick" class="input" type="month" onchange="renderMonth()"/>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="card subtle">
+            <div class="kpiTitle">Ingresos (mes)</div>
+            <div id="mIngresos" class="kpiValue smallKpi">S/ 0</div>
+          </div>
+          <div class="card subtle">
+            <div class="kpiTitle">Inversión (mes)</div>
+            <div id="mCostos" class="kpiValue smallKpi">S/ 0</div>
+          </div>
+          <div class="card subtle">
+            <div class="kpiTitle">Neto (mes)</div>
+            <div id="mNeto" class="kpiValue smallKpi">S/ 0</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </section>
+
+  <!-- MODAL CLIENTE -->
+  <div id="clientModal" class="modal hidden" onclick="modalBackdropClose(event,'clientModal')">
+    <div class="modalCard">
+      <div class="modalHead">
+        <h3 id="clientModalTitle">Nuevo cliente</h3>
+        <button class="iconBtn" onclick="closeClientModal()">✕</button>
+      </div>
+
+      <div class="formGrid">
+        <label class="field">
+          <span>Nombre</span>
+          <input id="cNombre" class="input" placeholder="Ej: Juan Pérez"/>
+        </label>
+        <label class="field">
+          <span>Número</span>
+          <input id="cNumero" class="input" placeholder="Ej: +51 999 999 999"/>
+        </label>
+
+        <label class="field span2">
+          <span>Servicios (puedes marcar varios)</span>
+          <div id="servicesChecks" class="checks"></div>
+          <div class="muted small">Si no aparece un servicio, entra a <b>Servicios</b> y agrégalo.</div>
+        </label>
+
+        <label class="field">
+          <span>Fecha de vencimiento</span>
+          <input id="cVence" class="input" type="date"/>
+        </label>
+        <label class="field">
+          <span>Pago cliente</span>
+          <input id="cPago" class="input" type="number" step="0.01" placeholder="Ej: 20"/>
+        </label>
+        <label class="field">
+          <span>Costo (lo que tú pagas)</span>
+          <input id="cCosto" class="input" type="number" step="0.01" placeholder="Ej: 12"/>
+        </label>
+
+        <label class="field span2">
+          <span>Datos de cuenta (opcional)</span>
+          <div class="row gap">
+            <input id="cEmail" class="input" placeholder="Correo (para la cuenta)"/>
+            <input id="cPass" class="input" placeholder="Contraseña (para la cuenta)"/>
+          </div>
+          <div class="muted small">Se guarda localmente en tu navegador (no es seguro si compartes la PC).</div>
+        </label>
+
+        <label class="field span2">
+          <span>Notas (opcional)</span>
+          <input id="cNotas" class="input" placeholder="Ej: perfil 1 / niño / etc."/>
+        </label>
+      </div>
+
+      <div class="modalActions">
+        <button id="btnDelete" class="btn danger hidden" onclick="deleteClient()">Eliminar</button>
+        <div class="spacer"></div>
+        <button class="btn" onclick="closeClientModal()">Cancelar</button>
+        <button class="btn primary" onclick="saveClient()">Guardar</button>
+      </div>
+    </div>
   </div>
 
-  <div id="app" class="hidden">
-    <h1>Control de Streaming</h1>
-    <button onclick="logout()">Cerrar sesión</button>
+  <!-- MODAL SERVICIOS -->
+  <div id="servicesModal" class="modal hidden" onclick="modalBackdropClose(event,'servicesModal')">
+    <div class="modalCard">
+      <div class="modalHead">
+        <h3>Servicios</h3>
+        <button class="iconBtn" onclick="closeServices()">✕</button>
+      </div>
 
-    <h2>Agregar cliente / servicio</h2>
-    <input id="cNombre" placeholder="Cliente"/>
-    <input id="cNumero" placeholder="Número"/>
-    <input id="cServicio" placeholder="Servicio"/>
-    <input id="cVence" type="date"/>
-    <input id="cPago" type="number" placeholder="Pago cliente"/>
-    <input id="cCosto" type="number" placeholder="Costo"/>
-    <button onclick="add()">Agregar</button>
+      <div class="row gap">
+        <input id="sName" class="input" placeholder="Nuevo servicio (Ej: Netflix)"/>
+        <button class="btn primary" onclick="addService()">Agregar</button>
+      </div>
 
-    <h2>Clientes</h2>
-    <input id="filter" placeholder="Filtrar por nombre, número o servicio" oninput="render()"/>
+      <div id="servicesList" class="list"></div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Cliente</th><th>Número</th><th>Servicio</th>
-          <th>Vence</th><th>Pago</th><th>Costo</th><th>Ganancia</th>
-        </tr>
-      </thead>
-      <tbody id="rows"></tbody>
-    </table>
+      <div class="modalActions">
+        <button class="btn" onclick="closeServices()">Listo</button>
+      </div>
+    </div>
   </div>
 
-<script src="app.js"></script>
+  <!-- MODAL AJUSTES -->
+  <div id="settingsModal" class="modal hidden" onclick="modalBackdropClose(event,'settingsModal')">
+    <div class="modalCard">
+      <div class="modalHead">
+        <h3>Ajustes</h3>
+        <button class="iconBtn" onclick="closeSettings()">✕</button>
+      </div>
+
+      <div class="formGrid">
+        <label class="field">
+          <span>Usuario</span>
+          <input id="setUser" class="input" placeholder="admin"/>
+        </label>
+        <label class="field">
+          <span>Contraseña</span>
+          <input id="setPass" class="input" placeholder="1234"/>
+        </label>
+        <label class="field span2">
+          <span>Moneda (solo visual)</span>
+          <input id="setCurrency" class="input" placeholder="S/"/>
+          <div class="muted small">Ejemplo: S/ , $ , Bs , etc.</div>
+        </label>
+      </div>
+
+      <div class="modalActions">
+        <button class="btn" onclick="closeSettings()">Cancelar</button>
+        <button class="btn primary" onclick="saveSettings()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
 </body>
 </html>
